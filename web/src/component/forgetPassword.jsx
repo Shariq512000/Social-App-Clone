@@ -57,6 +57,16 @@ function ForgetPassword() {
             .email('Enter a Valid Email')
             // .isValid('enter a valid email')
             .required('email is Required'),
+        otp: yup
+            .string("Enter a Valid OTP")
+            .required("Enter OTP")
+            .min(5)
+            .max(5),
+        newPassword: yup
+            .string("Enter a Valid Password")
+            .required("Enter Password")
+            .min(6 , "enter minimum 6 letters")
+            .max(12 , "Enter maximum 12 letters")
     });
 
     const formik = useFormik({
