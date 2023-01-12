@@ -7,6 +7,7 @@ import {
     varifyHash,
 } from "bcrypt-inzi";
 import { nanoid, customAlphabet } from 'nanoid'
+import moment from "moment";
 
 
 
@@ -170,7 +171,7 @@ router.post('/logout', (req, res) => {
     res.send({ message: "Logout successful" });
 });
 
-router.post('./forget-password' , async(req , res) => {
+router.post('/forget-password' , async(req , res) => {
     try {
 
         const body = req.body
@@ -198,8 +199,6 @@ router.post('./forget-password' , async(req , res) => {
             message: "OTP sent success",
         });
         return;
-
-
         
     } catch (error) {
         
@@ -211,5 +210,65 @@ router.post('./forget-password' , async(req , res) => {
     }
 }
 )
+router.post('/forget-password-1' , async (req , res) => {
+    try {
+        const email = req.body.email.toLowerCase()
+        const otp = req.body.otp
+
+        if(!email || !otp) {
+            res.status(404).send(
+                "required parameter missing"
+            )
+            return
+        }
+
+        const otpRecord = await otpModel.findOne({email: email}).sort({_id: -1}).exec()
+        if (!otpRecord) throw new Error("invalid OTP")
+        if (!otpRecord.isUsed) throw new Error("invalid OTP")
+
+        await otpRecord.update({isUsed: true}).exec()
+
+        const now = moment()
+        const otpCreatedTime = moment(otpRecord.createdOn)
+        const diffInTime = now.diff(otpCreatedTime , "seconds")
+
+        if(diffInTime > 120) throw new Error ("Invalid OTP")
+
+        const isMatch = await varifyHash(otp , otpRecord.otp)
+
+        if(!isMatch) throw new Error("Invalid OTP")
+
+        res.status(200).send("OTP Matched")
+
+    } catch (error) {
+
+        console.log("error: ", error);
+        res.status(500).send({
+            message: error.message
+        })
+        
+    }
+}
+)
+router.post('/forget-password-2' , async (req , res) => {
+    try {
+        const email = req.body.email.toLowerCase()
+        const newPassword = req.body.password
+        const user = await userModel.findOne({email: email})
+        if(!user) throw new Error("User Not Found")
+        const newHash = await stringToHash(newPassword)
+
+        await user.update({password: newHash})
+
+        res.status(200).send("Password Reset Success")
+
+        
+    } catch (error) {
+        console.log("error: ", error);
+        res.status(500).send({
+            message: error.message
+        })
+    }   
+})
 
 export default router;

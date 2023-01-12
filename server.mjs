@@ -73,8 +73,10 @@ app.use('/api/v1' , (req, res, next) => {
     });
 });
 
-const getUser = async(req,res) => {
+const getUser = async (req,res) => {
     let _id = "";
+    console.log("profile===");
+
 
     if(req.params.id){
         _id = req.params.id
@@ -99,10 +101,10 @@ const getUser = async(req,res) => {
     }
 } 
 
-app.get('./api/v1/profile' , getUser);
-app.get('./api/v1/profile/:id' , getUser);
+app.get('/api/v1/profile' , getUser);
+app.get('/api/v1/profile/:id' , getUser);
 
-app.post('./api/v1/change-password' , async(req , res) => {
+app.post('/api/v1/change-password' , async(req , res) => {
  try{
     const _id = req.body.token._id
     const currentPassword = req.body.currentPassword
