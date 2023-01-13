@@ -4,15 +4,6 @@ import { GlobalContext } from '../context/Context';
 import axios from "axios";
 import { Formik, Form, Field, useFormik } from 'formik';
 import * as yup from 'yup';
-import {
-    BooleanSchema,
-    DateSchema,
-    MixedSchema,
-    NumberSchema,
-    ArraySchema,
-    ObjectSchema,
-    StringSchema,
-} from 'yup';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Alert from '@mui/material/Alert';
@@ -22,7 +13,6 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { useState } from "react";
 import "./signup.css";
-import e from "express";
 
 
 
