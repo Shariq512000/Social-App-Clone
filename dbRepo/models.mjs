@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { string } from 'yup/lib/locale';
+// import { string } from 'yup/lib/locale';
 
 let postSchema = new mongoose.Schema({
     text: { type: String, required: true },
@@ -27,8 +27,8 @@ const userSchema = new mongoose.Schema({
 export const userModel = mongoose.model('Users', userSchema);
 
 const otpSchema = new mongoose.Schema({
-    email: string ,
-    otp: String,
+    email: { type: String} ,
+    otp: { type: String},
     isUsed: { type: Boolean , default: false },
     createdOn: { type: Date, default: Date.now },
 });

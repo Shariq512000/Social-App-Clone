@@ -75,6 +75,7 @@ function ForgetPassword() {
         },
         validationSchema: validationSchema,
         onSubmit: async (values) => {
+            console.log("Clicked");
             dispatch({ type: 'CLICK_LOGIN' });
             console.log("values: ", values);
             setGetEmail(formik.values.email);
