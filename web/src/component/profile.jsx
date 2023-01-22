@@ -129,29 +129,29 @@ function Profile() {
       console.log("picture :", postImage.files[0]);
       let formData = new FormData();
       formData.append("myFile" , postImage.files[0]);
+      formData.append("text" , formik.values.text);
 
-
-      axios.post(`${state.baseUrl}/post`, {
-        text: formik.values.text,
-      },
-        { withCredentials: true })
-        .then(response => {
-          dispatch({ type: 'CLICK_LOGOUT' });
-          let message = response.data.message;
-          console.log("message: ", message)
-          console.log("response: ", response.data);
-          setOpen(true);
-          setLoadPosts(!loadPosts);
-          formik.resetForm();
-
-
-        })
-        .catch(err => {
-          dispatch({ type: 'CLICK_LOGOUT' });
-          console.log("error: ", err);
-          setFailedMessage(err.data.message);
-          setErrorOpen(true);
-        })
+      axios({
+        method: "post" ,
+        url: `${state.baseUrl}/post`,
+        data: formData,
+        headers: {'Content-Type' : 'multipart/form-data'}
+      })
+      .then(response => {
+        dispatch({ type: 'CLICK_LOGOUT' });
+        let message = response.data.message;
+        console.log("message: ", message)
+        console.log("response: ", response.data);
+        setOpen(true);
+        setLoadPosts(!loadPosts);
+        formik.resetForm();
+      })
+      .catch(err => {
+        dispatch({ type: 'CLICK_LOGOUT' });
+        console.log("error: ", err);
+        setFailedMessage(err.data.message);
+        setErrorOpen(true);
+      })
     },
   });
   const editFormik = useFormik({
