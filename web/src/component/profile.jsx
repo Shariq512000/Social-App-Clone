@@ -228,7 +228,11 @@ function Profile() {
           }}
         />
         <br />
+        {(preview.length >= 1)?
         <img src={preview} width={200} alt="" />
+        :
+        null
+        }
         <br />
 
         {(state.clickLoad === false) ?
@@ -324,8 +328,11 @@ function Profile() {
               <br />
               <p>{eachPost?.text}</p>
               <br />
-              <img src={eachPost.imageUrl} alt="post image" />
-              <IconButton aria-label="delete" size="large" color="red" style={{ color: "red" }} onClick={() => {
+              {(eachPost.imageUrl) ?
+                <img src={eachPost.imageUrl} alt="post image" />
+                :
+                null
+              }              <IconButton aria-label="delete" size="large" color="red" style={{ color: "red" }} onClick={() => {
                 deletePost(eachPost?._id)
               }} >
                 <DeleteIcon fontSize="inherit" color="red" />

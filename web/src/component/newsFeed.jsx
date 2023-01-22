@@ -128,31 +128,31 @@ function PostFeed() {
       let postImage = document.getElementById("pictures");
       console.log("picture :", postImage.files[0]);
       let formData = new FormData();
-      formData.append("myFile" , postImage.files[0]);
-      formData.append("text" , formik.values.text);
+      formData.append("myFile", postImage.files[0]);
+      formData.append("text", formik.values.text);
 
       axios({
-        method: "post" ,
+        method: "post",
         url: `${state.baseUrl}/post`,
         data: formData,
-        headers: {'Content-Type' : 'multipart/form-data'}
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
-      .then(response => {
-        dispatch({ type: 'CLICK_LOGOUT' });
-        let message = response.data.message;
-        console.log("message: ", message)
-        console.log("response: ", response.data);
-        setOpen(true);
-        setLoadPosts(!loadPosts);
-        setPreview("");
-        formik.resetForm();
-      })
-      .catch(err => {
-        dispatch({ type: 'CLICK_LOGOUT' });
-        console.log("error: ", err);
-        setFailedMessage(err.data.message);
-        setErrorOpen(true);
-      })
+        .then(response => {
+          dispatch({ type: 'CLICK_LOGOUT' });
+          let message = response.data.message;
+          console.log("message: ", message)
+          console.log("response: ", response.data);
+          setOpen(true);
+          setLoadPosts(!loadPosts);
+          setPreview("");
+          formik.resetForm();
+        })
+        .catch(err => {
+          dispatch({ type: 'CLICK_LOGOUT' });
+          console.log("error: ", err);
+          setFailedMessage(err.data.message);
+          setErrorOpen(true);
+        })
     },
   });
   // const editFormik = useFormik({
@@ -219,7 +219,11 @@ function PostFeed() {
           }}
         />
         <br />
+        {(preview.length >= 1)?
         <img src={preview} width={200} alt="" />
+        :
+        null
+        }
         <br />
         <br />
         {(state.clickLoad === false) ?
@@ -314,7 +318,11 @@ function PostFeed() {
               </div>
               <p>{eachPost?.text}</p>
               <br />
-              <img src={eachPost.imageUrl} alt="post image" />
+              {(eachPost.imageUrl) ?
+                <img src={eachPost.imageUrl} alt="post image" />
+                :
+                null
+              }
 
 
 
