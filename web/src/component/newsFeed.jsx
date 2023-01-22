@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import axios from "axios";
 import { Formik, Form, Field, useFormik } from 'formik';
 import * as yup from 'yup';
+import Avatar from '@mui/material/Avatar';
+import moment from "moment";
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Alert from '@mui/material/Alert';
@@ -17,6 +19,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import coverImage from "../images/coverPhoto1.png";
+import profileImage from "../images/profilePhoto1.jpg";
+import InfiniteScroll from 'react-infinite-scroller';
 
 // import { AiTwotoneEdit } from 'react-icons/ai';
 import { GrUpdate } from 'react-icons/gr';
@@ -41,17 +46,23 @@ function PostFeed() {
   const [clickEdit, setClickEdit] = useState(false);
   const [currentPosts, setCurrentPosts] = useState(null);
   const [failedMessage, setFailedMessage] = useState("")
+  const [eof, setEof] = useState(false);
+
 
 
 
   const getAllPosts = async () => {
+    if (eof) return;
     try {
-      const response = await axios.get(`${state.baseUrl}/postFeed`, {
+      const response = await axios.get(`${state.baseUrl}/postFeed?page=${posts.length}`, {
         withCredentials: true
       })
+      if (response.data.data.length === 0) setEof(true);
       console.log("response: ", response);
       console.log("data: ", response.data)
-      setPosts(response.data.data);
+      setPosts((prev) => {
+        return [...prev, ...response.data.data]
+      });
       console.log("posts: ", posts);
     }
     catch (error) {
@@ -75,25 +86,25 @@ function PostFeed() {
     setFailUpdatedOpen(false);
   }
 
-  let deletePost = async (_id) => {
-    try {
-      const response = await axios.delete(`${state.baseUrl}/post/${_id}`)
-      console.log("response: ", response.data);
-      setLoadPosts(!loadPosts);
-      setDeleteOpen(true);
-    }
-    catch (error) {
-      console.log("requested failed: ", error);
-      setFailDeleteOpen(true);
-    }
-  }
-  let editPost = (post) => {
-    setClickEdit(!clickEdit);
-    setCurrentPosts(post);
-    editFormik.setFieldValue("name", post.name)
-    editFormik.setFieldValue("price", post.price)
-    editFormik.setFieldValue("description", post.description)
-  }
+  // let deletePost = async (_id) => {
+  //   try {
+  //     const response = await axios.delete(`${state.baseUrl}/post/${_id}`)
+  //     console.log("response: ", response.data);
+  //     setLoadPosts(!loadPosts);
+  //     setDeleteOpen(true);
+  //   }
+  //   catch (error) {
+  //     console.log("requested failed: ", error);
+  //     setFailDeleteOpen(true);
+  //   }
+  // }
+  // let editPost = (post) => {
+  //   setClickEdit(!clickEdit);
+  //   setCurrentPosts(post);
+  //   editFormik.setFieldValue("name", post.name)
+  //   editFormik.setFieldValue("price", post.price)
+  //   editFormik.setFieldValue("description", post.description)
+  // }
 
 
 
@@ -123,6 +134,7 @@ function PostFeed() {
           console.log("response: ", response.data);
           setOpen(true);
           setLoadPosts(!loadPosts);
+          formik.resetForm();
 
         })
         .catch(err => {
@@ -133,33 +145,33 @@ function PostFeed() {
         })
     },
   });
-  const editFormik = useFormik({
-    initialValues: {
-      text: '',
-    },
-    validationSchema: validationSchema,
-    onSubmit: (values) => {
-      console.log("values: ", values);
-      setClickEdit(!clickEdit);
-      axios.put(`${state.baseUrl}/post/${currentPosts._id}`, {
+  // const editFormik = useFormik({
+  //   initialValues: {
+  //     text: '',
+  //   },
+  //   validationSchema: validationSchema,
+  //   onSubmit: (values) => {
+  //     console.log("values: ", values);
+  //     setClickEdit(!clickEdit);
+  //     axios.put(`${state.baseUrl}/post/${currentPosts._id}`, {
 
-        text: editFormik.values.text,
-      })
-        .then(response => {
-          setUpdatedOpen(true);
-          let message = response.data.message;
-          console.log("message: ", message)
-          console.log("response: ", response.data);
-          setLoadPosts(!loadPosts);
+  //       text: editFormik.values.text,
+  //     })
+  //       .then(response => {
+  //         setUpdatedOpen(true);
+  //         let message = response.data.message;
+  //         console.log("message: ", message)
+  //         console.log("response: ", response.data);
+  //         setLoadPosts(!loadPosts);
 
 
-        })
-        .catch(err => {
-          setFailUpdatedOpen(true);
-          console.log("error: ", err);
-        })
-    },
-  });
+  //       })
+  //       .catch(err => {
+  //         setFailUpdatedOpen(true);
+  //         console.log("error: ", err);
+  //       })
+  //   },
+  // });
 
 
 
@@ -260,13 +272,27 @@ function PostFeed() {
       </Snackbar>
       <br />
       <br />
+      <InfiniteScroll
+        pageStart={0}
+        loadMore={getAllPosts}
+        hasMore={!eof}
+        loader={<center><div className="loader" key={0}><CircularProgress/></div></center>}
+      >
+        <div style={{ alignSelf: "center" }}>
+          {posts?.map((eachPost, i) => (
+            <div key={i} className="card">
+              <div className="postP">
+                <Avatar className="pof" src={profileImage} sx={{ height: 55, width: 55, top: 17 }} />
+                <div className="nam">
+                  <h3><b>{eachPost?.owner?.firstName} {eachPost?.owner?.lastName}</b></h3>
+                  <p>{moment(eachPost.createdOn).fromNow()}</p>
+                </div>
+              </div>
+              <p>{eachPost?.text}</p>
 
-      <div style={{ alignSelf: "center" }}>
-        {posts?.map((eachPost, i) => (
-          <div key={i} className="card">
-            <p><b>Id:  </b>{eachPost?._id}</p>
-            <p>{eachPost?.text}</p>
-            <IconButton aria-label="delete" size="large" color="red" style={{ color: "red" }} onClick={() => {
+
+
+              {/* <IconButton aria-label="delete" size="large" color="red" style={{ color: "red" }} onClick={() => {
               deletePost(eachPost?._id)
             }} >
               <DeleteIcon fontSize="inherit" color="red" />
@@ -282,10 +308,9 @@ function PostFeed() {
                 }} >
                   <EditIcon fontSize="inherit" color="green" />
                 </IconButton>
-            }
+            } */}
 
-
-            {
+              {/* {
               (clickEdit && currentPosts._id === eachPost._id) ?
                 <div>
                   <form className="form" onSubmit={editFormik.handleSubmit}>
@@ -338,19 +363,20 @@ function PostFeed() {
 
                 </div>
                 : null
-            }
+            } */}
 
 
 
-          </div>
+            </div>
 
-        ))
-        }
-      </div>
+          ))
+          }
+        </div>
+      </InfiniteScroll>
 
 
 
-    </div>
+    </div >
 
   )
 

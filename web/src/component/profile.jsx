@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import axios from "axios";
 import { Formik, Form, Field, useFormik } from 'formik';
 import * as yup from 'yup';
+import Avatar from '@mui/material/Avatar';
+import moment from "moment"
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Alert from '@mui/material/Alert';
@@ -17,8 +19,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import coverImage from "../images/coverPhoto.jpg";
-import profileImage from "../images/profilePhoto.jpg";
+import coverImage from "../images/coverPhoto1.png";
+import profileImage from "../images/profilePhoto1.jpg";
+import InfiniteScroll from 'react-infinite-scroller';
 
 // import { AiTwotoneEdit } from 'react-icons/ai';
 import { GrUpdate } from 'react-icons/gr';
@@ -40,20 +43,27 @@ function Profile() {
   const [updatedOpen, setUpdatedOpen] = useState(false);
   const [failUpdatedOpen, setFailUpdatedOpen] = useState(false);
   const [loadPosts, setLoadPosts] = useState(false);
+  const [eof, setEof] = useState(false);
   const [clickEdit, setClickEdit] = useState(false);
   const [currentPosts, setCurrentPosts] = useState(null);
-  const [failedMessage, setFailedMessage] = useState("")
+  const [failedMessage, setFailedMessage] = useState("");
+  const [preview, setPreview] = useState("");
+
 
 
 
   const getAllPosts = async () => {
+    if (eof) return;
     try {
-      const response = await axios.get(`${state.baseUrl}/posts`, {
+      const response = await axios.get(`${state.baseUrl}/posts?page=${posts.length}`, {
         withCredentials: true
       })
+      if (response.data.data.length === 0) setEof(true);
       console.log("response: ", response);
       console.log("data: ", response.data)
-      setPosts(response.data.data);
+      setPosts((prev) => {
+        return [...prev, ...response.data.data]
+      });
       console.log("posts: ", posts);
     }
     catch (error) {
@@ -92,9 +102,7 @@ function Profile() {
   let editPost = (post) => {
     setClickEdit(!clickEdit);
     setCurrentPosts(post);
-    editFormik.setFieldValue("name", post.name)
-    editFormik.setFieldValue("price", post.price)
-    editFormik.setFieldValue("description", post.description)
+    editFormik.setFieldValue("text", post.text)
   }
 
 
@@ -112,8 +120,17 @@ function Profile() {
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
+
+
       dispatch({ type: 'CLICK_LOGIN' });
       console.log("values: ", values);
+
+      let postImage = document.getElementById("pictures");
+      console.log("picture :", postImage.files[0]);
+      let formData = new FormData();
+      formData.append("myFile" , postImage.files[0]);
+
+
       axios.post(`${state.baseUrl}/post`, {
         text: formik.values.text,
       },
@@ -125,6 +142,8 @@ function Profile() {
           console.log("response: ", response.data);
           setOpen(true);
           setLoadPosts(!loadPosts);
+          formik.resetForm();
+
 
         })
         .catch(err => {
@@ -153,6 +172,7 @@ function Profile() {
           console.log("message: ", message)
           console.log("response: ", response.data);
           setLoadPosts(!loadPosts);
+          formik.resetForm();
 
 
         })
@@ -162,7 +182,7 @@ function Profile() {
         })
     },
   });
-  console.log("state" , state);
+  console.log("state", state);
 
 
 
@@ -170,15 +190,14 @@ function Profile() {
   return (
     <div>
       <div className="cover">
-      <img src={coverImage} alt="" />
+        <img src={coverImage} alt="" />
       </div>
       <div className="profile">
-      <img src={profileImage} alt="" />
-      <span>Shariq Siddiqui</span>
-      {/* <span> {state.user.firstName} {state.user.lastName}  </span> */}
+        <img src={profileImage} alt="" />
+        <span> {state?.user?.firstName}  {state?.user?.lastName} </span>
       </div>
       {/* <SearchAppBar /> */}
-      <form className="form" onSubmit={formik.handleSubmit}>
+      <form className="pForm" onSubmit={formik.handleSubmit}>
         <TextField
 
 
@@ -190,13 +209,27 @@ function Profile() {
           name="text"
           label="Text:"
           placeholder="What's on your mind"
-          value={formik.values.name}
+          value={formik.values.text}
           onChange={formik.handleChange}
-          error={formik.touched.name && Boolean(formik.errors.name)}
-          helperText={formik.touched.name && formik.errors.name}
+          error={formik.touched.text && Boolean(formik.errors.text)}
+          helperText={formik.touched.text && formik.errors.text}
         />
         <br />
         <br />
+        <input
+          type="file"
+          id="pictures"
+          accept="image/*"
+          onChange={(e) => {
+            let url = URL.createObjectURL(e.currentTarget.files[0]);
+            console.log("URL :" , url);
+            setPreview(url);
+          }}
+        />
+        <br />
+        <img src={preview} width={200} alt="" />
+        <br />
+
         {(state.clickLoad === false) ?
 
           <Button color="primary" variant="contained" type="submit">
@@ -271,93 +304,87 @@ function Profile() {
       </Snackbar>
       <br />
       <br />
-
-      <div style={{ alignSelf: "center" }}>
-        {posts?.map((eachPost, i) => (
-          <div key={i} className="card">
-            <p><b>Id:  </b>{eachPost?._id}</p>
-            <p>{eachPost?.text}</p>
-            <IconButton aria-label="delete" size="large" color="red" style={{ color: "red" }} onClick={() => {
-              deletePost(eachPost?._id)
-            }} >
-              <DeleteIcon fontSize="inherit" color="red" />
-            </IconButton>
-            {
-              (clickEdit && currentPosts._id === eachPost._id) ? <IconButton aria-label="cancel" size="large" color="orange" style={{ color: "orange" }} onClick={() => {
-                editPost(eachPost)
+      <InfiniteScroll
+        pageStart={0}
+        loadMore={getAllPosts}
+        hasMore={!eof}
+        loader={<center><div className="loader" key={0}><CircularProgress /></div></center>}
+      >
+        <div style={{ alignSelf: "center" }}>
+          {posts?.map((eachPost, i) => (
+            <div key={i} className="card">
+              <div className="postP">
+                <Avatar className="pof" src={profileImage} sx={{ height: 55, width: 55, top: 17 }} />
+                <div className="nam">
+                  <h3><b>{eachPost?.owner?.firstName} {eachPost?.owner?.lastName}</b></h3>
+                  <p>{moment(eachPost.createdOn).fromNow()}</p>
+                </div>
+              </div>
+              <br />
+              <p>{eachPost?.text}</p>
+              <IconButton aria-label="delete" size="large" color="red" style={{ color: "red" }} onClick={() => {
+                deletePost(eachPost?._id)
               }} >
-                <CancelIcon fontSize="inherit" color="orange" />
-              </IconButton> :
-                <IconButton aria-label="edit" size="large" color="green" style={{ color: "green" }} onClick={() => {
+                <DeleteIcon fontSize="inherit" color="red" />
+              </IconButton>
+              {
+                (clickEdit && currentPosts._id === eachPost._id) ? <IconButton aria-label="cancel" size="large" color="orange" style={{ color: "orange" }} onClick={() => {
                   editPost(eachPost)
                 }} >
-                  <EditIcon fontSize="inherit" color="green" />
-                </IconButton>
-            }
+                  <CancelIcon fontSize="inherit" color="orange" />
+                </IconButton> :
+                  <IconButton aria-label="edit" size="large" color="green" style={{ color: "green" }} onClick={() => {
+                    editPost(eachPost)
+                  }} >
+                    <EditIcon fontSize="inherit" color="green" />
+                  </IconButton>
+              }
 
 
-            {
-              (clickEdit && currentPosts._id === eachPost._id) ?
-                <div>
-                  <form className="form" onSubmit={editFormik.handleSubmit}>
-                    <TextField
-                      id="name"
-                      name="name"
-                      label="Name: "
-                      value={editFormik.values.name}
-                      onChange={editFormik.handleChange}
-                      error={editFormik.touched.name && Boolean(editFormik.errors.name)}
-                      helperText={editFormik.touched.name && editFormik.errors.name}
-                    />
-                    <br />
-                    <br />
-
-                    <TextField
-                      id="price"
-                      name="price"
-                      label="price: "
-                      type="number"
-                      value={editFormik.values.price}
-                      onChange={editFormik.handleChange}
-                      error={editFormik.touched.price && Boolean(editFormik.errors.price)}
-                      helperText={editFormik.touched.price && editFormik.errors.price}
-                    />
-                    <br />
-                    <br />
-
-                    <TextField
-                      id="description"
-                      name="description"
-                      label="description: "
-                      type="textarea"
-                      value={editFormik.values.description}
-                      onChange={editFormik.handleChange}
-                      error={editFormik.touched.description && Boolean(editFormik.errors.description)}
-                      helperText={editFormik.touched.description && editFormik.errors.description}
-                    />
-                    <br />
-                    <br />
-
-                    <IconButton color="primary" variant="contained" type="submit">
-
-                      <GrUpdate />
-
-                    </IconButton>
+              {
+                (clickEdit && currentPosts._id === eachPost._id) ?
+                  <div>
+                    <form className="form" onSubmit={editFormik.handleSubmit}>
+                      <TextField
 
 
-                  </form>
+                        multiline
+                        rows={5}
+                        variant="filled"
 
-                </div>
-                : null
-            }
+                        id="text"
+                        name="text"
+                        label="Text:"
+                        placeholder="What's on your mind"
+                        value={editFormik.values.text}
+                        onChange={editFormik.handleChange}
+                        error={editFormik.touched.text && Boolean(editFormik.errors.text)}
+                        helperText={editFormik.touched.text && editFormik.errors.text}
+                      />
+                      <br />
+                      <br />
+
+                      <IconButton color="primary" variant="contained" type="submit">
+
+                        <GrUpdate />
+
+                      </IconButton>
+
+
+                    </form>
+
+                  </div>
+                  : null
+              }
 
 
 
-          </div>
+            </div>
 
-        ))
-        }
-      </div>
+          ))
+          }
+        </div>
+      </InfiniteScroll>
 
 
 

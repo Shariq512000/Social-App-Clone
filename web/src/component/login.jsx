@@ -84,6 +84,7 @@ function Login() {
                     setSuccessOpen(true);
                     setSuccessMessage(message);
                     dispatch({type: 'USER_LOGIN', payload: response.data.profile })
+                    formik.resetForm();
 
                 }
                 catch (error) {

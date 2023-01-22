@@ -88,6 +88,7 @@ function Signup() {
                     console.log("message: ", message)
                     console.log("response: ", response.data);
                     setSuccessOpen(true);
+                    formik.resetForm();
 
                 })
                 .catch(err => {

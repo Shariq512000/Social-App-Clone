@@ -65,8 +65,8 @@ function ForgetPassword() {
         newPassword: yup
             .string("Enter a Valid Password")
             .required("Enter Password")
-            .min(6 , "enter minimum 6 letters")
-            .max(12 , "Enter maximum 12 letters")
+            .min(6, "enter minimum 6 letters")
+            .max(12, "Enter maximum 12 letters")
     });
 
     const formik = useFormik({
@@ -106,6 +106,7 @@ function ForgetPassword() {
                 setErrorOpen(true);
             }
         },
+        // validator:() => ({})
     });
 
     const formikOtp = useFormik({
@@ -183,11 +184,17 @@ function ForgetPassword() {
         },
     });
 
+    let sendOtp = (e) => {
+        e.preventDefault();
+        console.log("Clicked")
+    };
+
     return (
         <div>
 
             {(!loadOtp && !putOtp) ?
                 <form className="form" onSubmit={formik.handleSubmit}>
+                {/* <form onSubmit={sendOtp}> */}
 
                     <TextField
                         id="email"
@@ -211,29 +218,6 @@ function ForgetPassword() {
                         <CircularProgress />
                     }
 
-
-
-                    {/* Successfully Alert */}
-
-                    <Snackbar open={successOpen} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{
-                        vertical: 'top',
-                        horizontal: 'center'
-                    }}>
-                        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-                            {successMessage}
-                        </Alert>
-                    </Snackbar>
-
-                    {/* Error Alert */}
-
-                    <Snackbar open={errorOpen} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{
-                        vertical: 'top',
-                        horizontal: 'center'
-                    }}>
-                        <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-                            {errorMessage};
-                        </Alert>
-                    </Snackbar>
                 </form>
                 :
                 null
@@ -263,30 +247,6 @@ function ForgetPassword() {
                         :
                         <CircularProgress />
                     }
-
-
-
-                    {/* Successfully Alert */}
-
-                    <Snackbar open={successOpen} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{
-                        vertical: 'top',
-                        horizontal: 'center'
-                    }}>
-                        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-                            {successMessage}
-                        </Alert>
-                    </Snackbar>
-
-                    {/* Error Alert */}
-
-                    <Snackbar open={errorOpen} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{
-                        vertical: 'top',
-                        horizontal: 'center'
-                    }}>
-                        <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-                            {errorMessage};
-                        </Alert>
-                    </Snackbar>
                 </form>
                 :
                 null
@@ -317,36 +277,33 @@ function ForgetPassword() {
                         :
                         <CircularProgress />
                     }
-
-
-
-                    {/* Successfully Alert */}
-
-                    <Snackbar open={successOpen} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{
-                        vertical: 'top',
-                        horizontal: 'center'
-                    }}>
-                        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-                            {successMessage}
-                        </Alert>
-                    </Snackbar>
-
-                    {/* Error Alert */}
-
-                    <Snackbar open={errorOpen} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{
-                        vertical: 'top',
-                        horizontal: 'center'
-                    }}>
-                        <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-                            {errorMessage};
-                        </Alert>
-                    </Snackbar>
                 </form>
                 :
                 null
             }
 
 
+            {/* Successfully Alert */}
+
+            <Snackbar open={successOpen} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'center'
+            }}>
+                <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+                    {successMessage}
+                </Alert>
+            </Snackbar>
+
+            {/* Error Alert */}
+
+            <Snackbar open={errorOpen} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'center'
+            }}>
+                <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+                    {errorMessage};
+                </Alert>
+            </Snackbar>
         </div>
     )
 }

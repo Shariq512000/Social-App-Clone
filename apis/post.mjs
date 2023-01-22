@@ -1,5 +1,5 @@
 import express from "express";
-import { postModel } from "../dbRepo/models.mjs";
+import { postModel, userModel } from "../dbRepo/models.mjs";
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import {
@@ -52,16 +52,24 @@ router.post('/post', (req, res) => {
 router.get('/posts', (req, res) => {
 
     const userId = new mongoose.Types.ObjectId(req.body.token._id);
+    // const admin = userModel.findOne({_id : userId},"firstName lastName")
+    const page = req.query.page || 0
 
-    postModel.find({ owner: userId, isDeleted: false },{}, {
+    postModel.find({ owner: userId, isDeleted: false }, {}, {
         sort: { "_id": -1 },
-        limit: 100,
-        skip: 0
+        limit: 5,
+        skip: page,
+        populate:
+        {
+            path: "owner",
+            select: 'firstName lastName email'
+        }
     }, (err, data) => {
         if (!err) {
             res.send({
                 message: "got all posts successfully",
-                data: data
+                data: data,
+                // admin: admin 
             })
         } else {
             res.status(500).send({
@@ -73,10 +81,12 @@ router.get('/posts', (req, res) => {
 
 router.get('/postFeed', (req, res) => {
 
-    postModel.find({ isDeleted: false },{}, {
+    const page = req.query.page || 0
+
+    postModel.find({ isDeleted: false }, {}, {
         sort: { "_id": -1 },
-        limit: 100,
-        skip: 0,
+        limit: 5,
+        skip: page,
         populate: {
             path: "owner",
             match: 'firstName lastName'
