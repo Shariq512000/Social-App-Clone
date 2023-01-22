@@ -323,6 +323,8 @@ function Profile() {
               </div>
               <br />
               <p>{eachPost?.text}</p>
+              <br />
+              <img src={eachPost.imageUrl} alt="post image" />
               <IconButton aria-label="delete" size="large" color="red" style={{ color: "red" }} onClick={() => {
                 deletePost(eachPost?._id)
               }} >

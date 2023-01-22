@@ -45,8 +45,9 @@ function PostFeed() {
   const [loadPosts, setLoadPosts] = useState(false);
   const [clickEdit, setClickEdit] = useState(false);
   const [currentPosts, setCurrentPosts] = useState(null);
-  const [failedMessage, setFailedMessage] = useState("")
+  const [failedMessage, setFailedMessage] = useState("");
   const [eof, setEof] = useState(false);
+  const [preview, setPreview] = useState("");
 
 
 
@@ -123,26 +124,35 @@ function PostFeed() {
     onSubmit: (values) => {
       dispatch({ type: 'CLICK_LOGIN' });
       console.log("values: ", values);
-      axios.post(`${state.baseUrl}/post`, {
-        text: formik.values.text,
-      },
-        { withCredentials: true })
-        .then(response => {
-          dispatch({ type: 'CLICK_LOGOUT' });
-          let message = response.data.message;
-          console.log("message: ", message)
-          console.log("response: ", response.data);
-          setOpen(true);
-          setLoadPosts(!loadPosts);
-          formik.resetForm();
 
-        })
-        .catch(err => {
-          dispatch({ type: 'CLICK_LOGOUT' });
-          console.log("error: ", err);
-          setFailedMessage(err.data.message);
-          setErrorOpen(true);
-        })
+      let postImage = document.getElementById("pictures");
+      console.log("picture :", postImage.files[0]);
+      let formData = new FormData();
+      formData.append("myFile" , postImage.files[0]);
+      formData.append("text" , formik.values.text);
+
+      axios({
+        method: "post" ,
+        url: `${state.baseUrl}/post`,
+        data: formData,
+        headers: {'Content-Type' : 'multipart/form-data'}
+      })
+      .then(response => {
+        dispatch({ type: 'CLICK_LOGOUT' });
+        let message = response.data.message;
+        console.log("message: ", message)
+        console.log("response: ", response.data);
+        setOpen(true);
+        setLoadPosts(!loadPosts);
+        setPreview("");
+        formik.resetForm();
+      })
+      .catch(err => {
+        dispatch({ type: 'CLICK_LOGOUT' });
+        console.log("error: ", err);
+        setFailedMessage(err.data.message);
+        setErrorOpen(true);
+      })
     },
   });
   // const editFormik = useFormik({
@@ -196,6 +206,20 @@ function PostFeed() {
           error={formik.touched.name && Boolean(formik.errors.name)}
           helperText={formik.touched.name && formik.errors.name}
         />
+        <br />
+        <br />
+        <input
+          type="file"
+          id="pictures"
+          accept="image/*"
+          onChange={(e) => {
+            let url = URL.createObjectURL(e.currentTarget.files[0]);
+            console.log("URL :", url);
+            setPreview(url);
+          }}
+        />
+        <br />
+        <img src={preview} width={200} alt="" />
         <br />
         <br />
         {(state.clickLoad === false) ?
@@ -276,7 +300,7 @@ function PostFeed() {
         pageStart={0}
         loadMore={getAllPosts}
         hasMore={!eof}
-        loader={<center><div className="loader" key={0}><CircularProgress/></div></center>}
+        loader={<center><div className="loader" key={0}><CircularProgress /></div></center>}
       >
         <div style={{ alignSelf: "center" }}>
           {posts?.map((eachPost, i) => (
@@ -289,6 +313,8 @@ function PostFeed() {
                 </div>
               </div>
               <p>{eachPost?.text}</p>
+              <br />
+              <img src={eachPost.imageUrl} alt="post image" />
 
 
 
