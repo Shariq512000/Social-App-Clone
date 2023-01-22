@@ -7,6 +7,21 @@ import {
     varifyHash,
 } from "bcrypt-inzi";
 import mongoose from "mongoose";
+import fs from 'fs';
+
+import bucket from "../firebaseAdmin/server.mjs";
+
+import multer from 'multer';
+
+const storageConfig = multer.diskStorage({
+    destination: "./upload/",
+    filename: function (req, file, cb) {
+        console.log("mul-file", file);
+        cb(null, `${new Date().getTime()}-${file.originalname}`)
+    }
+})
+
+let uploadMiddleware = multer({ storage: storageConfig });
 
 
 
@@ -14,9 +29,12 @@ const router = express.Router()
 
 
 
-router.post('/post', (req, res) => {
+router.post('/post', uploadMiddleware.any(), (req, res) => {
+
 
     const body = req.body;
+
+    const token = jwt.decode(req.cookies.Token);
 
     if ( // validation
         !body.text
@@ -27,12 +45,66 @@ router.post('/post', (req, res) => {
         return;
     }
 
-    console.log(body.text)
+    console.log("req.body :", req.body);
+    console.log("req.file", req.files);
+
+    console.log("uploaded file name: ", req.files[0].originalname);
+    console.log("file type: ", req.files[0].mimetype);
+    console.log("file name in server folders: ", req.files[0].filename);
+    console.log("file path in server folders: ", req.files[0].path);
+
+    bucket.upload(
+        req.files[0].path,
+        {
+            destination: `postPictures/${req.files[0].filename}`, // give destination name if you want to give a certain name to file in bucket, include date to make name unique otherwise it will replace previous file with the same name
+        },
+        function (err, file, apiResponse) {
+            if (!err) {
+
+                file.getSignedUrl({
+                    action: 'read',
+                    expires: '03-09-2999'
+                }).then((urlData, err) => {
+                    if (!err) {
+                        console.log("public downloadable url: ", urlData[0]) // this is public downloadable url 
+
+                        try {
+                            fs.unlinkSync(req.files[0].path)
+                            //file removed
+                        } catch (err) {
+                            console.error(err)
+                        }
+                        postModel.create({
+                            text: body.text,
+                            imageUrl: urlData[0],
+                            owner: new mongoose.Types.ObjectId(token._id)
+                        },
+                            (err, saved) => {
+                                if (!err) {
+                                    console.log("saved: ", saved);
+
+                                    res.send({
+                                        message: "tweet added successfully"
+                                    });
+                                } else {
+                                    console.log("err: ", err);
+                                    res.status(500).send({
+                                        message: "server error"
+                                    })
+                                }
+                            })
+                    }
+                })
+            } else {
+                console.log("err: ", err)
+                res.status(500).send();
+            }
+        });
 
 
     postModel.create({
         text: body.text,
-        owner: new mongoose.Types.ObjectId(body.token._id),
+        owner: new mongoose.Types.ObjectId(token._id),
     },
         (err, saved) => {
             if (!err) {

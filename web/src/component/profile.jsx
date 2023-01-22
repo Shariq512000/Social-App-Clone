@@ -144,6 +144,7 @@ function Profile() {
         console.log("response: ", response.data);
         setOpen(true);
         setLoadPosts(!loadPosts);
+        setPreview("");
         formik.resetForm();
       })
       .catch(err => {

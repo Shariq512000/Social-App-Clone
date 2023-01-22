@@ -16,10 +16,10 @@ const SECRET = process.env.SECRET || "topsecret";
 
 const app = express()
 const port = process.env.PORT || 5001;
-// const mongodbURI = process.env.mongodbURI || "mongodb+srv://dbuser:dbpassword@cluster0.gq9n2zr.mongodb.net/abcdatabase?retryWrites=true&w=majority";
-// app.use(cors());
+
 app.use(cookieParser());
 app.use(express.json());
+
 
 app.use(cors({
     origin: ['http://localhost:3000', "*"],
