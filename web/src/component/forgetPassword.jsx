@@ -184,27 +184,124 @@ function ForgetPassword() {
         },
     });
 
-    let sendOtp = (e) => {
+    let sendOtp = async (e) => {
         e.preventDefault();
-        console.log("Clicked")
+        console.log("Clicked");
+        dispatch({ type: 'CLICK_LOGIN' });
+
+
+        try {
+            let response = await axios.post(`${state.baseUrl}/forget-password`, {
+                email: getEmail,
+
+            }, {
+                withCredentials: true
+            })
+
+            setLoadOtp(true)
+            dispatch({ type: 'CLICK_LOGOUT' });
+            let message = response.data.message;
+            console.log("Your OTP :", response.data.Otp);
+            console.log("message: ", message);
+            console.log("response: ", response.data);
+            setSuccessOpen(true);
+            setSuccessMessage(message);
+            // dispatch({type: 'USER_LOGIN', payload: response.data.profile })
+
+        }
+        catch (error) {
+            dispatch({ type: 'CLICK_LOGOUT' });
+            console.log("error: ", error);
+            setErrorMessage(error.response.data.message);
+            setErrorOpen(true);
+        }
     };
+
+    let confirmOtp = async(e) => {
+        e.preventDefault();
+
+        dispatch({ type: 'CLICK_LOGIN' });
+
+            try {
+                let response = await axios.post(`${state.baseUrl}/forget-password-1`, {
+                    email: getEmail,
+                    otp: getOtp
+
+                }, {
+                    withCredentials: true
+                })
+                setPutOtp(true);
+                dispatch({ type: 'CLICK_LOGOUT' });
+                let message = response.data.message;
+                console.log("response :", response);
+                console.log("message: ", message);
+                console.log("response: ", response.data);
+                setSuccessOpen(true);
+                setSuccessMessage(message);
+                // dispatch({type: 'USER_LOGIN', payload: response.data.profile })
+            }
+            catch (error) {
+                dispatch({ type: 'CLICK_LOGOUT' });
+                console.log("error: ", error);
+                setErrorMessage(error.response.data.message);
+                setErrorOpen(true);
+            }
+    }
+    let changePassword = async(e) => {
+
+            e.preventDefault();
+
+            dispatch({ type: 'CLICK_LOGIN' });
+
+            try {
+                let response = await axios.post(`${state.baseUrl}/forget-password-2`, {
+                    email: getEmail,
+                    otp: getOtp,
+                    password: getNewPassword
+
+                }, {
+                    withCredentials: true
+                })
+                dispatch({ type: 'CLICK_LOGOUT' });
+                let message = response.data.message;
+                console.log("response :", response);
+                console.log("message: ", message);
+                console.log("response: ", response.data);
+                setSuccessOpen(true);
+                setSuccessMessage("Password Changed");
+                e.reset();
+
+            }
+            catch (error) {
+                dispatch({ type: 'CLICK_LOGOUT' });
+                console.log("error: ", error);
+                setErrorMessage(error.response.data.message);
+                setErrorOpen(true);
+            }
+
+    }
 
     return (
         <div>
 
             {(!loadOtp && !putOtp) ?
-                <form className="form" onSubmit={formik.handleSubmit}>
-                {/* <form onSubmit={sendOtp}> */}
+                // <form className="form" onSubmit={formik.handleSubmit}>
+                <form className="form" onSubmit={sendOtp}>
 
                     <TextField
                         id="email"
                         name="email"
                         label="Enter your Email"
                         type="email"
-                        value={formik.values.email}
-                        onChange={formik.handleChange}
-                        error={formik.touched.email && Boolean(formik.errors.email)}
-                        helperText={formik.touched.email && formik.errors.email}
+                        onChange={
+                            (e) => {
+                                setGetEmail(e.target.value)
+                            }
+                        }
+                    // value={formik.values.email}
+                    // onChange={formik.handleChange}
+                    // error={formik.touched.email && Boolean(formik.errors.email)}
+                    // helperText={formik.touched.email && formik.errors.email}
                     />
                     <br />
                     <br />
@@ -224,17 +321,23 @@ function ForgetPassword() {
             }
 
             {(loadOtp && !putOtp) ?
-                <form className="form" onSubmit={formikOtp.handleSubmit}>
+                // <form className="form" onSubmit={formikOtp.handleSubmit}>
+                <form className="form" onSubmit={confirmOtp}>
 
                     <TextField
                         id="otp"
                         name="otp"
                         label="Enter 5 Digit OTP"
                         type="text"
-                        value={formikOtp.values.otp}
-                        onChange={formikOtp.handleChange}
-                        error={formikOtp.touched.otp && Boolean(formikOtp.errors.otp)}
-                        helperText={formikOtp.touched.otp && formikOtp.errors.otp}
+                        onChange={
+                            (e) => {
+                                setGetOtp(e.target.value)
+                            }
+                        }
+                        // value={formikOtp.values.otp}
+                        // onChange={formikOtp.handleChange}
+                        // error={formikOtp.touched.otp && Boolean(formikOtp.errors.otp)}
+                        // helperText={formikOtp.touched.otp && formikOtp.errors.otp}
                     />
                     <br />
                     <br />
@@ -253,7 +356,8 @@ function ForgetPassword() {
             }
 
             {(loadOtp && putOtp) ?
-                <form className="form" onSubmit={formikPassword.handleSubmit}>
+                // <form className="form" onSubmit={formikPassword.handleSubmit}>
+                <form className="form" onSubmit={changePassword}>
 
 
                     <TextField
@@ -261,10 +365,13 @@ function ForgetPassword() {
                         name="newPassword"
                         label="Enter New Password"
                         type="password"
-                        value={formikPassword.values.newPassword}
-                        onChange={formikPassword.handleChange}
-                        error={formikPassword.touched.newPassword && Boolean(formikPassword.errors.newPassword)}
-                        helperText={formikPassword.touched.newPassword && formikPassword.errors.newPassword}
+                        onChange={(e) => {
+                            setGetNewPassword(e.target.value)
+                        }}
+                        // value={formikPassword.values.newPassword}
+                        // onChange={formikPassword.handleChange}
+                        // error={formikPassword.touched.newPassword && Boolean(formikPassword.errors.newPassword)}
+                        // helperText={formikPassword.touched.newPassword && formikPassword.errors.newPassword}
                     />
                     <br />
                     <br />

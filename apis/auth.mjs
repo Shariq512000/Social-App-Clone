@@ -196,6 +196,7 @@ router.post('/forget-password' , async(req , res) => {
         });
 
         res.send({
+            Otp: OTP,
             message: "OTP sent success",
         });
         return;
@@ -224,7 +225,7 @@ router.post('/forget-password-1' , async (req , res) => {
 
         const otpRecord = await otpModel.findOne({email: email}).sort({_id: -1}).exec()
         if (!otpRecord) throw new Error("invalid OTP")
-        if (!otpRecord.isUsed) throw new Error("invalid OTP")
+        if (otpRecord.isUsed) throw new Error("invalid OTP")
 
         await otpRecord.update({isUsed: true}).exec()
 
@@ -232,11 +233,11 @@ router.post('/forget-password-1' , async (req , res) => {
         const otpCreatedTime = moment(otpRecord.createdOn)
         const diffInTime = now.diff(otpCreatedTime , "seconds")
 
-        if(diffInTime > 120) throw new Error ("Invalid OTP")
+        if(diffInTime > 120) throw new Error ("invalid OTP")
 
         const isMatch = await varifyHash(otp , otpRecord.otp)
 
-        if(!isMatch) throw new Error("Invalid OTP")
+        if(!isMatch) throw new Error("invalid OTP")
 
         res.status(200).send("OTP Matched")
 
