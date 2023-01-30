@@ -18,6 +18,7 @@ import TextField from '@mui/material/TextField';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import CircularProgress from '@mui/material/CircularProgress';
+import Countdown from 'react-countdown';
 
 
 import { useState } from "react";
@@ -41,6 +42,26 @@ function ForgetPassword() {
     const [getNewPassword, setGetNewPassword] = useState("");
     const [loadOtp, setLoadOtp] = useState(false);
     const [putOtp, setPutOtp] = useState(false);
+    const [timeUp, setTimeUp] = useState(false);
+
+
+
+
+ 
+    const Completionist = () => {
+        setTimeUp(true);
+    }
+
+
+    const renderer = ({ minutes, seconds, completed }) => {
+        if (completed) {
+            // Render a completed state
+            return <Completionist />;
+        } else {
+            // Render a countdown
+            return <span>{minutes}:{seconds}</span>;
+        }
+    };
 
 
 
@@ -184,6 +205,35 @@ function ForgetPassword() {
         },
     });
 
+    let resend = async() => {
+        try {
+            let response = await axios.post(`${state.baseUrl}/forget-password`, {
+                email: getEmail,
+
+            }, {
+                withCredentials: true
+            })
+
+            setLoadOtp(true)
+            setTimeUp(false);
+            dispatch({ type: 'CLICK_LOGOUT' });
+            let message = response.data.message;
+            console.log("Your OTP :", response.data.Otp);
+            console.log("message: ", message);
+            console.log("response: ", response.data);
+            setSuccessOpen(true);
+            setSuccessMessage(message);
+            // dispatch({type: 'USER_LOGIN', payload: response.data.profile })
+
+        }
+        catch (error) {
+            dispatch({ type: 'CLICK_LOGOUT' });
+            console.log("error: ", error);
+            setErrorMessage(error.response.data.message);
+            setErrorOpen(true);
+        }
+    }
+
     let sendOtp = async (e) => {
         e.preventDefault();
         console.log("Clicked");
@@ -199,6 +249,7 @@ function ForgetPassword() {
             })
 
             setLoadOtp(true)
+            setTimeUp(false);
             dispatch({ type: 'CLICK_LOGOUT' });
             let message = response.data.message;
             console.log("Your OTP :", response.data.Otp);
@@ -217,67 +268,67 @@ function ForgetPassword() {
         }
     };
 
-    let confirmOtp = async(e) => {
+    let confirmOtp = async (e) => {
         e.preventDefault();
 
         dispatch({ type: 'CLICK_LOGIN' });
 
-            try {
-                let response = await axios.post(`${state.baseUrl}/forget-password-1`, {
-                    email: getEmail,
-                    otp: getOtp
+        try {
+            let response = await axios.post(`${state.baseUrl}/forget-password-1`, {
+                email: getEmail,
+                otp: getOtp
 
-                }, {
-                    withCredentials: true
-                })
-                setPutOtp(true);
-                dispatch({ type: 'CLICK_LOGOUT' });
-                let message = response.data.message;
-                console.log("response :", response);
-                console.log("message: ", message);
-                console.log("response: ", response.data);
-                setSuccessOpen(true);
-                setSuccessMessage(message);
-                // dispatch({type: 'USER_LOGIN', payload: response.data.profile })
-            }
-            catch (error) {
-                dispatch({ type: 'CLICK_LOGOUT' });
-                console.log("error: ", error);
-                setErrorMessage(error.response.data.message);
-                setErrorOpen(true);
-            }
+            }, {
+                withCredentials: true
+            })
+            setPutOtp(true);
+            dispatch({ type: 'CLICK_LOGOUT' });
+            let message = response.data.message;
+            console.log("response :", response);
+            console.log("message: ", message);
+            console.log("response: ", response.data);
+            setSuccessOpen(true);
+            setSuccessMessage(message);
+            // dispatch({type: 'USER_LOGIN', payload: response.data.profile })
+        }
+        catch (error) {
+            dispatch({ type: 'CLICK_LOGOUT' });
+            console.log("error: ", error);
+            setErrorMessage(error.response.data.message);
+            setErrorOpen(true);
+        }
     }
-    let changePassword = async(e) => {
+    let changePassword = async (e) => {
 
-            e.preventDefault();
+        e.preventDefault();
 
-            dispatch({ type: 'CLICK_LOGIN' });
+        dispatch({ type: 'CLICK_LOGIN' });
 
-            try {
-                let response = await axios.post(`${state.baseUrl}/forget-password-2`, {
-                    email: getEmail,
-                    otp: getOtp,
-                    password: getNewPassword
+        try {
+            let response = await axios.post(`${state.baseUrl}/forget-password-2`, {
+                email: getEmail,
+                otp: getOtp,
+                password: getNewPassword
 
-                }, {
-                    withCredentials: true
-                })
-                dispatch({ type: 'CLICK_LOGOUT' });
-                let message = response.data.message;
-                console.log("response :", response);
-                console.log("message: ", message);
-                console.log("response: ", response.data);
-                setSuccessOpen(true);
-                setSuccessMessage("Password Changed");
-                e.reset();
+            }, {
+                withCredentials: true
+            })
+            dispatch({ type: 'CLICK_LOGOUT' });
+            let message = response.data.message;
+            console.log("response :", response);
+            console.log("message: ", message);
+            console.log("response: ", response.data);
+            setSuccessOpen(true);
+            setSuccessMessage("Password Changed");
+            e.reset();
 
-            }
-            catch (error) {
-                dispatch({ type: 'CLICK_LOGOUT' });
-                console.log("error: ", error);
-                setErrorMessage(error.response.data.message);
-                setErrorOpen(true);
-            }
+        }
+        catch (error) {
+            dispatch({ type: 'CLICK_LOGOUT' });
+            console.log("error: ", error);
+            setErrorMessage(error.response.data.message);
+            setErrorOpen(true);
+        }
 
     }
 
@@ -321,36 +372,55 @@ function ForgetPassword() {
             }
 
             {(loadOtp && !putOtp) ?
-                // <form className="form" onSubmit={formikOtp.handleSubmit}>
-                <form className="form" onSubmit={confirmOtp}>
+                <div>
 
-                    <TextField
-                        id="otp"
-                        name="otp"
-                        label="Enter 5 Digit OTP"
-                        type="text"
-                        onChange={
-                            (e) => {
-                                setGetOtp(e.target.value)
+                    <h3 style={{ color: "red" }}> &nbsp; &nbsp; Note : <br /> <br /> <br /><center> This app is made for assignment purpose </center> <br /> <center> You Can Find OTP in console </center></h3>
+                   
+                    {(!timeUp)?
+                    <p className="timeUp"> <center> The OTP Expired in <span className="cd"><Countdown
+                    date={Date.now() + 120000}
+                    renderer={renderer}
+                    zeroPadTime={2}
+                    /></span> </center> </p>
+                    :
+                    <p className="timeUp"> <center> Don't get OTP? <br /> <br />
+                    <Button color="warning" variant="contained" onClick={() => {
+                        resend()                   
+                    }}>Resend OTP</Button> </center> </p>
+                    }
+
+                    {/* <form className="form" onSubmit={formikOtp.handleSubmit}> */}
+                    <form className="formn" onSubmit={confirmOtp}>
+
+                        <TextField
+                            id="otp"
+                            name="otp"
+                            label="Enter 5 Digit OTP"
+                            type="text"
+                            onChange={
+                                (e) => {
+                                    setGetOtp(e.target.value)
+                                }
                             }
-                        }
                         // value={formikOtp.values.otp}
                         // onChange={formikOtp.handleChange}
                         // error={formikOtp.touched.otp && Boolean(formikOtp.errors.otp)}
                         // helperText={formikOtp.touched.otp && formikOtp.errors.otp}
-                    />
-                    <br />
-                    <br />
+                        />
+                        <br />
+                        <br />
 
-                    {(state.clickLoad === false) ?
+                        {(state.clickLoad === false) ?
 
-                        <Button color="primary" variant="outlined" type="submit">
-                            Confirm OTP
-                        </Button>
-                        :
-                        <CircularProgress />
-                    }
-                </form>
+                            <Button color="primary" variant="outlined" type="submit">
+                                Confirm OTP
+                            </Button>
+                            :
+                            <CircularProgress />
+                        }
+                    </form>
+
+                </div>
                 :
                 null
             }
@@ -368,10 +438,10 @@ function ForgetPassword() {
                         onChange={(e) => {
                             setGetNewPassword(e.target.value)
                         }}
-                        // value={formikPassword.values.newPassword}
-                        // onChange={formikPassword.handleChange}
-                        // error={formikPassword.touched.newPassword && Boolean(formikPassword.errors.newPassword)}
-                        // helperText={formikPassword.touched.newPassword && formikPassword.errors.newPassword}
+                    // value={formikPassword.values.newPassword}
+                    // onChange={formikPassword.handleChange}
+                    // error={formikPassword.touched.newPassword && Boolean(formikPassword.errors.newPassword)}
+                    // helperText={formikPassword.touched.newPassword && formikPassword.errors.newPassword}
                     />
                     <br />
                     <br />

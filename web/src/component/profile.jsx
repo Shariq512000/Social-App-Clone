@@ -192,6 +192,16 @@ function Profile() {
     <div>
       <div className="cover">
         <img src={coverImage} alt="" />
+        {/* <input
+          type="file"
+          id="pictures"
+          accept="image/*"
+          onChange={(e) => {
+            let url = URL.createObjectURL(e.currentTarget.files[0]);
+            console.log("URL :" , url);
+            setPreview(url);
+          }}
+        /> */}
       </div>
       <div className="profile">
         <img src={profileImage} alt="" />
