@@ -48,77 +48,87 @@ router.post('/post', uploadMiddleware.any(), (req, res) => {
     console.log("req.body :", req.body);
     console.log("req.file", req.files);
 
-    console.log("uploaded file name: ", req.files[0].originalname);
-    console.log("file type: ", req.files[0].mimetype);
-    console.log("file name in server folders: ", req.files[0].filename);
-    console.log("file path in server folders: ", req.files[0].path);
+    // console.log("uploaded file name: ", req.files[0].originalname);
+    // console.log("file type: ", req.files[0].mimetype);
+    // console.log("file name in server folders: ", req.files[0].filename);
+    // console.log("file path in server folders: ", req.files[0].path);
+    if (req?.files?.length) {
 
-    bucket.upload(
-        req.files[0].path,
-        {
-            destination: `postPictures/${req.files[0].filename}`, // give destination name if you want to give a certain name to file in bucket, include date to make name unique otherwise it will replace previous file with the same name
-        },
-        function (err, file, apiResponse) {
-            if (!err) {
+        bucket.upload(
+            req.files[0].path,
+            {
+                destination: `postPictures/${req.files[0].filename}`, // give destination name if you want to give a certain name to file in bucket, include date to make name unique otherwise it will replace previous file with the same name
+            },
+            function (err, file, apiResponse) {
+                if (!err) {
 
-                file.getSignedUrl({
-                    action: 'read',
-                    expires: '03-09-2999'
-                }).then((urlData, err) => {
-                    if (!err) {
-                        console.log("public downloadable url: ", urlData[0]) // this is public downloadable url 
+                    file.getSignedUrl({
+                        action: 'read',
+                        expires: '03-09-2999'
+                    }).then((urlData, err) => {
+                        if (!err) {
+                            console.log("public downloadable url: ", urlData[0]) // this is public downloadable url 
 
-                        try {
-                            fs.unlinkSync(req.files[0].path)
-                            //file removed
-                        } catch (err) {
-                            console.error(err)
+                            try {
+                                fs.unlinkSync(req.files[0].path)
+                                //file removed
+                            } catch (err) {
+                                console.error(err)
+                            }
+                            postModel.create({
+                                text: body.text,
+                                imageUrl: urlData[0],
+                                owner: new mongoose.Types.ObjectId(token._id)
+                            },
+                                (err, saved) => {
+                                    if (!err) {
+                                        console.log("saved: ", saved);
+
+                                        res.send({
+                                            message: "tweet added successfully"
+                                        });
+                                        return;
+                                    } else {
+                                        console.log("err: ", err);
+                                        res.status(500).send({
+                                            message: "server error"
+                                        })
+                                        return;
+                                    }
+                                })
                         }
-                        postModel.create({
-                            text: body.text,
-                            imageUrl: urlData[0],
-                            owner: new mongoose.Types.ObjectId(token._id)
-                        },
-                            (err, saved) => {
-                                if (!err) {
-                                    console.log("saved: ", saved);
+                    })
+                } else {
+                    console.log("err: ", err)
+                    res.status(500).send();
+                    return;
+                }
+            });
 
-                                    res.send({
-                                        message: "tweet added successfully"
-                                    });
-                                } else {
-                                    console.log("err: ", err);
-                                    res.status(500).send({
-                                        message: "server error"
-                                    })
-                                }
-                            })
-                    }
-                })
-            } else {
-                console.log("err: ", err)
-                res.status(500).send();
-            }
-        });
+    } else {
 
 
-    postModel.create({
-        text: body.text,
-        owner: new mongoose.Types.ObjectId(token._id),
-    },
-        (err, saved) => {
-            if (!err) {
-                console.log(saved);
 
-                res.send({
-                    message: "post added successfully"
-                });
-            } else {
-                res.status(500).send({
-                    message: "server error"
-                })
-            }
-        })
+        postModel.create({
+            text: body.text,
+            owner: new mongoose.Types.ObjectId(token._id),
+        },
+            (err, saved) => {
+                if (!err) {
+                    console.log(saved);
+
+                    res.send({
+                        message: "post added successfully"
+                    });
+                    return
+                } else {
+                    res.status(500).send({
+                        message: "server error"
+                    })
+                    return;
+                }
+            })
+    }
 })
 
 router.get('/posts', (req, res) => {
