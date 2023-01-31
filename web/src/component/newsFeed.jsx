@@ -22,6 +22,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import coverImage from "../images/coverPhoto1.png";
 import profileImage from "../images/profilePhoto1.jpg";
 import InfiniteScroll from 'react-infinite-scroller';
+import { FileUploader } from "react-drag-drop-files";
 
 // import { AiTwotoneEdit } from 'react-icons/ai';
 import { GrUpdate } from 'react-icons/gr';
@@ -48,7 +49,11 @@ function PostFeed() {
   const [failedMessage, setFailedMessage] = useState("");
   const [eof, setEof] = useState(false);
   const [preview, setPreview] = useState("");
+  const [file, setFile] = useState("");
 
+
+
+  const fileTypes = ["JPG", "PNG", "GIF"];
 
 
 
@@ -109,6 +114,12 @@ function PostFeed() {
 
 
 
+  const handleFile = (_file) => {
+    setFile(_file);
+    let url = URL.createObjectURL(_file);
+    console.log("URL :", url);
+    setPreview(url);
+  }
 
 
   const validationSchema = yup.object({
@@ -125,7 +136,7 @@ function PostFeed() {
       dispatch({ type: 'CLICK_LOGIN' });
       console.log("values: ", values);
 
-      let postImage = document.getElementById("pictures");
+      let postImage = file;
       console.log("picture :", postImage.files[0]);
       let formData = new FormData();
       formData.append("myFile", postImage.files[0]);
@@ -208,7 +219,7 @@ function PostFeed() {
         />
         <br />
         <br />
-        <input
+        {/* <input
           type="file"
           id="pictures"
           accept="image/*"
@@ -217,7 +228,8 @@ function PostFeed() {
             console.log("URL :", url);
             setPreview(url);
           }}
-        />
+        /> */}
+        <center><FileUploader handleChange={handleFile} name="file" types={fileTypes} /></center>
         <br />
         {(preview.length >= 1)?
         <img src={preview} width={200} alt="" />

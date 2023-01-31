@@ -69,6 +69,9 @@
 .postP>.nam>h3{
   margin-bottom: 0px;
 }
+.file{
+  width: 50px;
+}
 
 /* #num{
     word-wrap: break-word;

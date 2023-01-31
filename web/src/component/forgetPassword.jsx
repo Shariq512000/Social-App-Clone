@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
 import { GlobalContext } from '../context/Context';
 
 import axios from "axios";
@@ -41,10 +41,19 @@ function ForgetPassword() {
     const [getOtp, setGetOtp] = useState("");
     const [getNewPassword, setGetNewPassword] = useState("");
     const [loadOtp, setLoadOtp] = useState(false);
+    console.log(">>>>>>>>>>>>>>>",loadOtp)
     const [putOtp, setPutOtp] = useState(false);
+    console.log(">>>>>>>>>>>>>>>?????????????",putOtp)
     const [timeUp, setTimeUp] = useState(false);
+    const [myOtp, setMyOtp] = useState("");
 
 
+    // const onChangeInput = useCallback(
+    //     (e) => {
+    //         setGetOtp(e.target.value);
+    //     },
+    //     [getOtp]
+    //   );
 
 
  
@@ -90,45 +99,45 @@ function ForgetPassword() {
             .max(12, "Enter maximum 12 letters")
     });
 
-    const formik = useFormik({
-        initialValues: {
-            email: '',
-        },
-        validationSchema: validationSchema,
-        onSubmit: async (values) => {
-            console.log("Clicked");
-            dispatch({ type: 'CLICK_LOGIN' });
-            console.log("values: ", values);
-            setGetEmail(formik.values.email);
+    // const formik = useFormik({
+    //     initialValues: {
+    //         email: '',
+    //     },
+    //     validationSchema: validationSchema,
+    //     onSubmit: async (values) => {
+    //         console.log("Clicked");
+    //         dispatch({ type: 'CLICK_LOGIN' });
+    //         console.log("values: ", values);
+    //         setGetEmail(formik.values.email);
 
-            try {
-                let response = await axios.post(`${state.baseUrl}/forget-password`, {
-                    email: formik.values.email,
+    //         try {
+    //             let response = await axios.post(`${state.baseUrl}/forget-password`, {
+    //                 email: formik.values.email,
 
-                }, {
-                    withCredentials: true
-                })
+    //             }, {
+    //                 withCredentials: true
+    //             })
 
-                setLoadOtp(true)
-                dispatch({ type: 'CLICK_LOGOUT' });
-                let message = response.data.message;
-                console.log("response :", response);
-                console.log("message: ", message);
-                console.log("response: ", response.data);
-                setSuccessOpen(true);
-                setSuccessMessage(message);
-                // dispatch({type: 'USER_LOGIN', payload: response.data.profile })
+    //             setLoadOtp(true)
+    //             dispatch({ type: 'CLICK_LOGOUT' });
+    //             let message = response.data.message;
+    //             console.log("response :", response);
+    //             console.log("message: ", message);
+    //             console.log("response: ", response.data);
+    //             setSuccessOpen(true);
+    //             setSuccessMessage(message);
+    //             // dispatch({type: 'USER_LOGIN', payload: response.data.profile })
 
-            }
-            catch (error) {
-                dispatch({ type: 'CLICK_LOGOUT' });
-                console.log("error: ", error);
-                setErrorMessage(error.response.data.message);
-                setErrorOpen(true);
-            }
-        },
-        // validator:() => ({})
-    });
+    //         }
+    //         catch (error) {
+    //             dispatch({ type: 'CLICK_LOGOUT' });
+    //             console.log("error: ", error);
+    //             setErrorMessage(error.response.data.message);
+    //             setErrorOpen(true);
+    //         }
+    //     },
+    //     // validator:() => ({})
+    // });
 
     const formikOtp = useFormik({
         initialValues: {
@@ -271,6 +280,11 @@ function ForgetPassword() {
     let confirmOtp = async (e) => {
         e.preventDefault();
 
+        // let otp = document.getElementById("otp").value
+        // console.log("OtpValue :" , otp)
+        // setGetOtp(otp);
+        // console.log("otpInState" , getOtp );
+
         dispatch({ type: 'CLICK_LOGIN' });
 
         try {
@@ -344,11 +358,7 @@ function ForgetPassword() {
                         name="email"
                         label="Enter your Email"
                         type="email"
-                        onChange={
-                            (e) => {
-                                setGetEmail(e.target.value)
-                            }
-                        }
+                        onChange={e => setGetEmail(e.target.value)}
                     // value={formik.values.email}
                     // onChange={formik.handleChange}
                     // error={formik.touched.email && Boolean(formik.errors.email)}
@@ -397,11 +407,11 @@ function ForgetPassword() {
                             name="otp"
                             label="Enter 5 Digit OTP"
                             type="text"
-                            onChange={
-                                (e) => {
-                                    setGetOtp(e.target.value)
-                                }
-                            }
+                            onChange={(e)=>{
+                                setGetOtp(e.target.value)
+                            }}
+                            // onChange={onChangeInput}
+                            // value={getOtp}
                         // value={formikOtp.values.otp}
                         // onChange={formikOtp.handleChange}
                         // error={formikOtp.touched.otp && Boolean(formikOtp.errors.otp)}

@@ -22,12 +22,14 @@ import CircularProgress from '@mui/material/CircularProgress';
 import coverImage from "../images/coverPhoto1.png";
 import profileImage from "../images/profilePhoto1.jpg";
 import InfiniteScroll from 'react-infinite-scroller';
+import { FileUploader } from "react-drag-drop-files";
 
 // import { AiTwotoneEdit } from 'react-icons/ai';
 import { GrUpdate } from 'react-icons/gr';
 import SearchAppBar from "./header";
 import Grid from '@mui/material/Grid';
 import "./product.css";
+import { Box, height } from "@mui/system";
 // import SearchAppBar from './header'
 
 
@@ -48,9 +50,11 @@ function Profile() {
   const [currentPosts, setCurrentPosts] = useState(null);
   const [failedMessage, setFailedMessage] = useState("");
   const [preview, setPreview] = useState("");
+  const [file, setFile] = useState("")
+  // const [blob, setBlob] = useState("")
 
 
-
+  const fileTypes = ["JPG", "PNG", "GIF"];
 
   const getAllPosts = async () => {
     if (eof) return;
@@ -125,34 +129,35 @@ function Profile() {
       dispatch({ type: 'CLICK_LOGIN' });
       console.log("values: ", values);
 
-      let postImage = document.getElementById("pictures");
+      let postImage = file
       console.log("picture :", postImage.files[0]);
       let formData = new FormData();
-      formData.append("myFile" , postImage.files[0]);
-      formData.append("text" , formik.values.text);
+      formData.append("myFile", postImage.files[0]);
+      formData.append("text", formik.values.text);
 
       axios({
-        method: "post" ,
+        method: "post",
         url: `${state.baseUrl}/post`,
         data: formData,
-        headers: {'Content-Type' : 'multipart/form-data'}
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
-      .then(response => {
-        dispatch({ type: 'CLICK_LOGOUT' });
-        let message = response.data.message;
-        console.log("message: ", message)
-        console.log("response: ", response.data);
-        setOpen(true);
-        setLoadPosts(!loadPosts);
-        setPreview("");
-        formik.resetForm();
-      })
-      .catch(err => {
-        dispatch({ type: 'CLICK_LOGOUT' });
-        console.log("error: ", err);
-        setFailedMessage(err.data.message);
-        setErrorOpen(true);
-      })
+        .then(response => {
+          dispatch({ type: 'CLICK_LOGOUT' });
+          let message = response.data.message;
+          console.log("message: ", message)
+          console.log("response: ", response.data);
+          setOpen(true);
+          setLoadPosts(!loadPosts);
+          setPreview("");
+          setFile("");
+          formik.resetForm();
+        })
+        .catch(err => {
+          dispatch({ type: 'CLICK_LOGOUT' });
+          console.log("error: ", err);
+          setFailedMessage(err.data.message);
+          setErrorOpen(true);
+        })
     },
   });
   const editFormik = useFormik({
@@ -186,6 +191,17 @@ function Profile() {
   console.log("state", state);
 
 
+  const handleFile = (_file) => {
+    setFile(_file);
+    let url = URL.createObjectURL(_file);
+    console.log("URL :", url);
+    setPreview(url);
+  }
+
+  // const imageBlob = () =>{
+  //   const ImgBlob = URL.createObjectURL(file);
+  //   setBlob(ImgBlob)
+  // }
 
 
   return (
@@ -227,21 +243,25 @@ function Profile() {
         />
         <br />
         <br />
-        <input
+        {/* <input
           type="file"
           id="pictures"
           accept="image/*"
           onChange={(e) => {
             let url = URL.createObjectURL(e.currentTarget.files[0]);
-            console.log("URL :" , url);
+            console.log("URL :", url);
             setPreview(url);
           }}
-        />
+        /> */}
+        <center><FileUploader handleChange={handleFile} name="file" types={fileTypes} /></center>
+        {/* <Box sx={{ width: "500px", height: "500px"}}>
+          <img src={blob ? blob : profileImage}/>
+        </Box> */}
         <br />
-        {(preview.length >= 1)?
-        <img src={preview} width={200} alt="" />
-        :
-        null
+        {(preview.length >= 1) ?
+          <img src={preview} width={200} alt="" />
+          :
+          null
         }
         <br />
 
